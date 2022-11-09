@@ -11,6 +11,33 @@ a {
   text-decoration: none;
 }
 
+
+input {
+  font-family: inherit;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  min-width: 100px;
+  max-width: 600px;
+  width: 100%;
+  margin-bottom: 0.5rem;
+  border-radius: 5px;
+  border: 1px solid #eaeaea;
+
+  
+}
+
+button {
+  font-family: inherit;
+  padding: 1rem;
+  /* margin: 0.75rem; */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  width: 100%;
+  cursor: pointer;
+}
+
 * {
   box-sizing: border-box;
 }

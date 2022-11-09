@@ -12,6 +12,11 @@
   align-items: center;
 }
 
+.formContainer {
+  border: lightgray 1px solid;
+  padding: 2rem;
+  border-radius: 5px;
+}
 .footer {
   display: flex;
   flex: 1;
