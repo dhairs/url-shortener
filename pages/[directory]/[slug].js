@@ -9,7 +9,6 @@ const Post = () => {
 async function getRedirectWithDirectory(slug, directory) {
   var fetchReq = await fetch(`${server}/api/${directory}/${slug}`);
   var data = await fetchReq.json();
-  console.log(slug, directory, data);
   return data;
 }
 
