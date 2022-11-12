@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import fetch from "node-fetch";
-import { server } from "../config/index.js";
+import { server } from "../../config/index.js";
 
 const Post = () => {
   return <div>Redirecting you...</div>;
@@ -13,7 +13,7 @@ async function getRedirect(slug) {
 }
 
 export async function getServerSideProps(context) {
-  const { url } = await getRedirect(context.params.slug);
+  const { url } = await getRedirect(context.params.directory);
   return {
     redirect: {
       permanent: false,
