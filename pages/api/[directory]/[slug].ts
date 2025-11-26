@@ -17,7 +17,7 @@ export default async function handler(
     var newData = docData.data();
 
     // how many times it was used
-    if (newData.count) {
+    if (newData.count != undefined && newData.count != null) {
       newData.count += 1;
     } else {
       newData.count = 0;
