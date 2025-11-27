@@ -15,6 +15,8 @@ export default async function handler(
   const docRef = doc(firestore, "slugs", `${directory}`);
   var docData = await getDoc(docRef);
 
+  console.log(`Got request for ${directory}`);
+
   if (docData.exists()) {
     var newData = docData.data();
 

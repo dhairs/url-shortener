@@ -15,14 +15,7 @@ export default async function handler(
   const docRef = doc(firestore, `${directory}`, `${slug}`);
   var docData = await getDoc(docRef);
 
-  const clientIp = (req.headers["x-forwarded-for"] || "")
-    .toString()
-    .split(",")[0]
-    .trim();
-
-  const ip = clientIp || req.socket.remoteAddress;
-
-  console.log(`Got request for ${directory} from ${ip}`);
+  console.log(`Got request for ${directory}/${slug}`);
 
   if (docData.exists()) {
     var newData = docData.data();
