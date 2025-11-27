@@ -7,21 +7,6 @@ type Data = {
   url: string;
 };
 
-export function getIp() {
-  let forwardedFor = headers().get("x-forwarded-for");
-  let real = headers().get("x-real-ip");
-
-  if (forwardedFor) {
-    return forwardedFor.split(",")[0].trim();
-  }
-
-  if (real) {
-    return real.trim();
-  }
-
-  return "n/a";
-}
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
@@ -30,7 +15,14 @@ export default async function handler(
   const docRef = doc(firestore, `${directory}`, `${slug}`);
   var docData = await getDoc(docRef);
 
-  console.log(`Got request for ${directory} from ${getIp()}`);
+  const clientIp = (req.headers["x-forwarded-for"] || "")
+    .toString()
+    .split(",")[0]
+    .trim();
+
+  const ip = clientIp || req.socket.remoteAddress;
+
+  console.log(`Got request for ${directory} from ${ip}`);
 
   if (docData.exists()) {
     var newData = docData.data();
