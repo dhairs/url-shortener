@@ -1,6 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { headers } from "next/headers";
 import firestore from "../../../bin/firebase";
 type Data = {
   url: string;
@@ -13,6 +14,7 @@ export default async function handler(
   const { directory } = req.query;
   const docRef = doc(firestore, "slugs", `${directory}`);
   var docData = await getDoc(docRef);
+
   if (docData.exists()) {
     var newData = docData.data();
 
