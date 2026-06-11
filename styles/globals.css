@@ -367,3 +367,50 @@ a:hover {
   padding: 2rem 0;
 }
 
+/* Search and Inline Editing Styles */
+.searchContainer {
+  margin-bottom: 1.5rem;
+  position: relative;
+  width: 100%;
+}
+
+.searchInput {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: #ffffff;
+  background-color: rgba(243, 221, 182, 0.02);
+  padding: 0.6rem 0.85rem;
+  border: 1px solid rgba(243, 221, 182, 0.1);
+  border-radius: 4px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.searchInput:focus {
+  border-color: rgba(243, 221, 182, 0.3);
+  background-color: rgba(243, 221, 182, 0.04);
+}
+
+.searchInput::placeholder {
+  color: #55555c;
+}
+
+.linkDestInput {
+  font-family: inherit;
+  font-size: 0.75rem;
+  color: #ffffff;
+  background-color: rgba(243, 221, 182, 0.05);
+  border: 1px solid rgba(243, 221, 182, 0.2);
+  border-radius: 3px;
+  padding: 0.25rem 0.4rem;
+  width: 100%;
+  margin-top: 0.25rem;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.linkDestInput:focus {
+  border-color: rgba(243, 221, 182, 0.5);
+}
+

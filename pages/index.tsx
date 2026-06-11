@@ -25,6 +25,13 @@ export default function Home() {
   const [loadingLinks, setLoadingLinks] = useState(false);
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
 
+  // Search & Edit states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [editingSlug, setEditingSlug] = useState<string | null>(null);
+  const [editingUrl, setEditingUrl] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
   // Fetch all links
   const fetchLinks = async () => {
     setLoadingLinks(true);
@@ -150,6 +157,51 @@ export default function Home() {
     setCopiedSlug(slug);
     setTimeout(() => setCopiedSlug(null), 2000);
   };
+
+  const handleSaveEdit = async (slug: string) => {
+    if (!editingUrl) {
+      setEditError("Destination URL is required.");
+      return;
+    }
+    if (!editingUrl.startsWith("http://") && !editingUrl.startsWith("https://")) {
+      setEditError("URL must start with http:// or https://");
+      return;
+    }
+
+    setSavingEdit(true);
+    setEditError(null);
+
+    try {
+      const res = await fetch("/api/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug, url: editingUrl }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update redirect URL");
+      }
+
+      setEditingSlug(null);
+      setEditingUrl("");
+      fetchLinks(); // Refresh links dashboard
+    } catch (err: any) {
+      setEditError(err.message || "An unexpected error occurred.");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  // Filter links on search term
+  const filteredLinks = links.filter((link) => {
+    const term = searchTerm.toLowerCase().trim();
+    if (!term) return true;
+    return (
+      link.slug.toLowerCase().includes(term) ||
+      link.url.toLowerCase().includes(term)
+    );
+  });
 
   return (
     <div className="container">
@@ -295,39 +347,114 @@ export default function Home() {
                 {loadingLinks && <span style={{ fontSize: "0.7rem", color: "#f3ddb6" }}>syncing...</span>}
               </div>
 
-              {links.length === 0 ? (
+              {links.length > 0 && (
+                <div className="searchContainer">
+                  <input
+                    type="text"
+                    placeholder="Search active redirects by slug or URL..."
+                    className="searchInput"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {filteredLinks.length === 0 ? (
                 <div className="noLinks">
-                  {loadingLinks ? "Syncing database..." : "No shortened URLs configured."}
+                  {loadingLinks 
+                    ? "Syncing database..." 
+                    : links.length === 0 
+                      ? "No shortened URLs configured." 
+                      : "No matching redirects found."}
                 </div>
               ) : (
-                links.map((link) => (
-                  <div key={link.slug} className="linkRow">
-                    <div className="linkInfo">
-                      <a
-                        href={`/${link.slug}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="linkSlug"
-                      >
-                        /{link.slug}
-                      </a>
-                      <span className="linkDest" title={link.url}>
-                        {link.url}
-                      </span>
+                filteredLinks.map((link) => {
+                  const isEditing = editingSlug === link.slug;
+                  return (
+                    <div key={link.slug} className="linkRow">
+                      <div className="linkInfo">
+                        <a
+                          href={`/${link.slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="linkSlug"
+                        >
+                          /{link.slug}
+                        </a>
+                        {isEditing ? (
+                          <div style={{ width: "100%", marginTop: "0.25rem" }}>
+                            <input
+                              type="url"
+                              className="linkDestInput"
+                              value={editingUrl}
+                              onChange={(e) => setEditingUrl(e.target.value)}
+                              disabled={savingEdit}
+                              required
+                            />
+                            {editError && editingSlug === link.slug && (
+                              <div style={{ color: "#ef4444", fontSize: "0.7rem", marginTop: "0.25rem" }}>
+                                {editError}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="linkDest" title={link.url}>
+                            {link.url}
+                          </span>
+                        )}
+                      </div>
+                      <div className="linkMeta">
+                        <span className="linkCount">
+                          {link.count} {link.count === 1 ? "click" : "clicks"}
+                        </span>
+                        
+                        {isEditing ? (
+                          <>
+                            <button
+                              onClick={() => handleSaveEdit(link.slug)}
+                              className="btnCopyMini"
+                              style={{ borderColor: "#f3ddb6", color: "#f3ddb6" }}
+                              disabled={savingEdit}
+                            >
+                              {savingEdit ? "Saving" : "Save"}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingSlug(null);
+                                setEditingUrl("");
+                                setEditError(null);
+                              }}
+                              className="btnCopyMini"
+                              style={{ borderColor: "rgba(239, 68, 68, 0.4)", color: "#ef4444" }}
+                              disabled={savingEdit}
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => {
+                                setEditingSlug(link.slug);
+                                setEditingUrl(link.url);
+                                setEditError(null);
+                              }}
+                              className="btnCopyMini"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleCopySlug(link.slug)}
+                              className="btnCopyMini"
+                            >
+                              {copiedSlug === link.slug ? "Copied" : "Copy"}
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <div className="linkMeta">
-                      <span className="linkCount">
-                        {link.count} {link.count === 1 ? "click" : "clicks"}
-                      </span>
-                      <button
-                        onClick={() => handleCopySlug(link.slug)}
-                        className="btnCopyMini"
-                      >
-                        {copiedSlug === link.slug ? "Copied" : "Copy"}
-                      </button>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
