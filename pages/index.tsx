@@ -150,14 +150,14 @@ export default function Home() {
   return (
     <div className="container">
       <Head>
-        <title>Console // Link Shortener</title>
-        <meta name="description" content="Secure administration panel for custom redirect short URLs." />
+        <title>link shortener | Dhairya Gupta</title>
+        <meta name="description" content="Custom link shortener." />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       {/* Header bar showing auth state */}
       <div className="headerInfo">
-        <span>LINK.GUPTADHAIRYA.COM</span>
+        <span></span>
         {user && (
           <div className="userBadge">
             {user.picture && (
@@ -190,25 +190,17 @@ export default function Home() {
         {checkingAuth ? (
           <div style={{ textAlign: "center" }}>
             <div className="spinner"></div>
-            <p style={{ fontSize: "0.8rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#767680" }}>
-              Verifying Authorization...
-            </p>
           </div>
         ) : !user ? (
           /* Sign In UI */
           <div className="glassCard">
-            <h1 className="editorialTitle">Exhibition Gate</h1>
-            <p className="editorialSubtitle">
-              Enter credentials to access the link shortening console and manage dynamic routing.
-            </p>
-
             {error && (
               <div style={{ color: "#ef4444", fontSize: "0.85rem", marginBottom: "1.5rem", textAlign: "center" }}>
                 {error}
               </div>
             )}
 
-            <button onClick={handleSignIn} className="btnPrimary btnGoogle">
+            <button onClick={handleSignIn} className="btnPrimary btnGoogle" style={{ marginTop: 0 }}>
               {/* Google G Logo SVG */}
               <svg width="18" height="18" viewBox="0 0 18 18">
                 <path
@@ -234,23 +226,17 @@ export default function Home() {
         ) : !isAuthorized ? (
           /* Access Denied UI */
           <div className="glassCard accessDeniedCard">
-            <h1 className="editorialTitle">Access Denied</h1>
-            <p className="editorialSubtitle">
-              Your account <strong>{user.email}</strong> does not have administrative clearance to access this console. Only authorized system administrators are permitted to configure redirects.
+            <p className="editorialSubtitle" style={{ marginBottom: "1.5rem" }}>
+              Unauthorized account: <strong>{user.email}</strong>
             </p>
 
-            <button onClick={handleSignOut} className="btnPrimary">
-              Log Out & Switch Accounts
+            <button onClick={handleSignOut} className="btnPrimary" style={{ marginTop: 0 }}>
+              Log Out
             </button>
           </div>
         ) : (
           /* Shortener Admin Form UI */
           <div className="glassCard">
-            <h1 className="editorialTitle">Console</h1>
-            <p className="editorialSubtitle">
-              Create a custom shortened URL. Supports hierarchical paths like <code>folder/slug</code>.
-            </p>
-
             <form onSubmit={handleSubmit}>
               <div className="formGroup">
                 <label className="formLabel">Custom Slug</label>
@@ -300,10 +286,6 @@ export default function Home() {
           </div>
         )}
       </main>
-
-      <footer className="footerInfo">
-        <p>© {new Date().getFullYear()} DHAIRYA GUPTA. ALL RIGHTS RESERVED.</p>
-      </footer>
     </div>
   );
 }
