@@ -82,22 +82,21 @@ export default function Home() {
     window.location.href = `${authUrl}/?redirect=${encodeURIComponent(currentUrl)}`;
   };
 
-  const handleSignOut = async () => {
+  const handleSignOut = () => {
     setError(null);
     setCheckingAuth(true);
     setSuccessLink(null);
-    try {
-      // Clear server cookie
-      await fetch("/api/auth/session", { method: "DELETE" });
-      setUser(null);
-      setIsAuthorized(false);
-      setLinks([]);
-    } catch (err) {
-      console.error("Sign out failed:", err);
-      setError("Failed to clear session securely.");
-    } finally {
-      setCheckingAuth(false);
-    }
+    
+    // Clear local shortener session cookie first
+    fetch("/api/auth/session", { method: "DELETE" })
+      .catch((err) => console.warn("Failed to clear local session:", err))
+      .finally(() => {
+        // Redirect to auth portal to sign out of the main Google session globally,
+        // which then bounces back here unauthenticated.
+        const authUrl = process.env.NEXT_PUBLIC_AUTH_URL || "https://auth.guptadhairya.com";
+        const currentUrl = typeof window !== "undefined" ? window.location.origin + window.location.pathname : "";
+        window.location.href = `${authUrl}/?action=logout&redirect=${encodeURIComponent(currentUrl)}`;
+      });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
