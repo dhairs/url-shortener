@@ -1,7 +1,5 @@
 import Head from "next/head";
 import { useState, useEffect } from "react";
-import { getClientAuth, getGoogleProvider } from "../lib/firebase-client-auth";
-import { signInWithPopup, signOut as firebaseSignOut } from "firebase/auth";
 
 interface UserState {
   uid: string;
@@ -47,35 +45,11 @@ export default function Home() {
     checkAuthStatus();
   }, []);
 
-  const handleSignIn = async () => {
+  const handleSignIn = () => {
     setError(null);
-    setCheckingAuth(true);
-    try {
-      const auth = getClientAuth();
-      const provider = getGoogleProvider();
-
-      // 1. Sign in client-side with Google Popup
-      const result = await signInWithPopup(auth, provider);
-      const idToken = await result.user.getIdToken();
-
-      // 2. Set HttpOnly session cookie on the server
-      const response = await fetch("/api/auth/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Server failed to establish session cookie");
-      }
-
-      // 3. Fetch status to confirm authorization
-      await checkAuthStatus();
-    } catch (err: any) {
-      console.error("Sign in failed:", err);
-      setError(err.message || "Authentication failed. Please try again.");
-      setCheckingAuth(false);
-    }
+    const authUrl = process.env.NEXT_PUBLIC_AUTH_URL || "https://auth.guptadhairya.com";
+    const currentUrl = typeof window !== "undefined" ? window.location.origin + window.location.pathname : "";
+    window.location.href = `${authUrl}/?redirect=${encodeURIComponent(currentUrl)}`;
   };
 
   const handleSignOut = async () => {
@@ -83,17 +57,8 @@ export default function Home() {
     setCheckingAuth(true);
     setSuccessLink(null);
     try {
-      // 1. Client-side sign out
-      try {
-        const auth = getClientAuth();
-        await firebaseSignOut(auth);
-      } catch (authErr) {
-        console.warn("Client auth sign-out bypassed:", authErr);
-      }
-
-      // 2. Clear server cookie
+      // Clear server cookie
       await fetch("/api/auth/session", { method: "DELETE" });
-
       setUser(null);
       setIsAuthorized(false);
     } catch (err) {
