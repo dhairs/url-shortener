@@ -256,27 +256,8 @@ export default function Home() {
               </div>
             )}
 
-            <button onClick={handleSignIn} className="btnPrimary btnGoogle" style={{ marginTop: 0 }}>
-              {/* Google G Logo SVG */}
-              <svg width="18" height="18" viewBox="0 0 18 18">
-                <path
-                  fill="#4285F4"
-                  d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.47h4.84c-.21 1.12-.84 2.07-1.8 2.72v2.24h2.9c1.7-1.57 2.7-3.88 2.7-6.6z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M9 18c2.43 0 4.47-.8 5.96-2.2l-2.9-2.24c-.8.54-1.84.87-3.06.87-2.35 0-4.34-1.58-5.05-3.72H.93v2.3C2.4 15.98 5.48 18 9 18z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M3.95 10.7c-.18-.54-.28-1.12-.28-1.7s.1-1.16.28-1.7V5.01H.93C.33 6.2 0 7.57 0 9s.33 2.8 1.05 4L3.95 10.7z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M9 3.58c1.32 0 2.5.45 3.44 1.35L15 2.05C13.46.62 11.43 0 9 0 5.48 0 2.4 2.02.93 5.01l3.02 2.31C4.66 5.18 6.65 3.58 9 3.58z"
-                />
-              </svg>
-              Continue with Google
+            <button onClick={handleSignIn} className="btnPrimary" style={{ marginTop: 0 }}>
+              Log In
             </button>
           </div>
         ) : !isAuthorized ? (
