@@ -20,6 +20,29 @@ export default function Home() {
   const [successLink, setSuccessLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // Link tracking states
+  const [links, setLinks] = useState<any[]>([]);
+  const [loadingLinks, setLoadingLinks] = useState(false);
+  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+
+  // Fetch all links
+  const fetchLinks = async () => {
+    setLoadingLinks(true);
+    try {
+      const res = await fetch("/api/list");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.status === "success" && data.links) {
+          setLinks(data.links);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch links:", err);
+    } finally {
+      setLoadingLinks(false);
+    }
+  };
+
   // Check auth status on load
   const checkAuthStatus = async () => {
     try {
@@ -45,6 +68,13 @@ export default function Home() {
     checkAuthStatus();
   }, []);
 
+  // Fetch links when authorized
+  useEffect(() => {
+    if (isAuthorized) {
+      fetchLinks();
+    }
+  }, [isAuthorized]);
+
   const handleSignIn = () => {
     setError(null);
     const authUrl = process.env.NEXT_PUBLIC_AUTH_URL || "https://auth.guptadhairya.com";
@@ -61,6 +91,7 @@ export default function Home() {
       await fetch("/api/auth/session", { method: "DELETE" });
       setUser(null);
       setIsAuthorized(false);
+      setLinks([]);
     } catch (err) {
       console.error("Sign out failed:", err);
       setError("Failed to clear session securely.");
@@ -97,6 +128,7 @@ export default function Home() {
       setSuccessLink(`${origin}/${data.slug}`);
       setSlug("");
       setUrl("");
+      fetchLinks(); // Refresh links dashboard
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.");
     } finally {
@@ -110,6 +142,14 @@ export default function Home() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleCopySlug = (slug: string) => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const fullUrl = `${origin}/${slug}`;
+    navigator.clipboard.writeText(fullUrl);
+    setCopiedSlug(slug);
+    setTimeout(() => setCopiedSlug(null), 2000);
   };
 
   return (
@@ -248,6 +288,49 @@ export default function Home() {
                 </span>
               </div>
             )}
+
+            {/* links list container */}
+            <div className="linksContainer">
+              <div className="linksHeader">
+                <span>Active Redirects</span>
+                {loadingLinks && <span style={{ fontSize: "0.7rem", color: "#f3ddb6" }}>syncing...</span>}
+              </div>
+
+              {links.length === 0 ? (
+                <div className="noLinks">
+                  {loadingLinks ? "Syncing database..." : "No shortened URLs configured."}
+                </div>
+              ) : (
+                links.map((link) => (
+                  <div key={link.slug} className="linkRow">
+                    <div className="linkInfo">
+                      <a
+                        href={`/${link.slug}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="linkSlug"
+                      >
+                        /{link.slug}
+                      </a>
+                      <span className="linkDest" title={link.url}>
+                        {link.url}
+                      </span>
+                    </div>
+                    <div className="linkMeta">
+                      <span className="linkCount">
+                        {link.count} {link.count === 1 ? "click" : "clicks"}
+                      </span>
+                      <button
+                        onClick={() => handleCopySlug(link.slug)}
+                        className="btnCopyMini"
+                      >
+                        {copiedSlug === link.slug ? "Copied" : "Copy"}
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         )}
       </main>
