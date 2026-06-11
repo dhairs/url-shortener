@@ -12,9 +12,26 @@ export function getAdminAuth() {
     const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
     if (projectId && clientEmail && privateKey) {
-      const cleanPrivateKey = privateKey
-        .replace(/\\n/g, "\n")
-        .replace(/^['"]|['"]$/g, "");
+      // Robust cleaning of Vercel/env private keys
+      let cleanPrivateKey = privateKey.trim();
+      
+      // Remove outer single/double quotes, including escaped quotes
+      cleanPrivateKey = cleanPrivateKey.replace(/^\\?['"]|\\?['"]$/g, "");
+      
+      // Replace literal '\n' or '\\n' strings with actual newline characters
+      cleanPrivateKey = cleanPrivateKey.replace(/\\n/g, "\n");
+      
+      // Ensure it starts and ends correctly
+      if (!cleanPrivateKey.startsWith("-----BEGIN PRIVATE KEY-----")) {
+        console.warn("Private key does not start with standard PEM header.");
+      }
+
+      console.log("Firebase Admin Cert Info:");
+      console.log(`- Project ID: ${projectId}`);
+      console.log(`- Client Email: ${clientEmail}`);
+      console.log(`- Key Length: ${cleanPrivateKey.length} characters`);
+      console.log(`- Key Start: "${cleanPrivateKey.substring(0, 35)}..."`);
+      console.log(`- Key End: "...${cleanPrivateKey.substring(cleanPrivateKey.length - 35)}"`);
 
       adminApp = initializeApp({
         credential: cert({
