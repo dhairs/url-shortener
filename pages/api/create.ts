@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getAdminAuth } from "../../lib/firebase-admin";
-import firestore from "../../bin/firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { getFirestore } from "firebase-admin/firestore";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -49,33 +48,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Slug cannot be empty" });
     }
 
-    // Determine collection and document ID
-    let collectionName = "slugs";
-    let docId = trimmedSlug;
-
+    // Validate slug structure
     if (trimmedSlug.includes("/")) {
       const parts = trimmedSlug.split("/");
-      if (parts.length === 2) {
-        collectionName = parts[0].trim();
-        docId = parts[1].trim();
-      } else {
+      if (parts.length > 2) {
         return res.status(400).json({ error: "Slug can contain at most one slash (e.g. folder/slug)" });
+      }
+      if (parts.some((p: string) => !p.trim())) {
+        return res.status(400).json({ error: "Slug segments cannot be empty" });
       }
     }
 
-    if (!docId) {
-      return res.status(400).json({ error: "Invalid slug format" });
-    }
+    // Document ID maps slug slashes to colons for flat storage
+    const docId = trimmedSlug.replace(/\//g, ":");
 
-    // Check if slug already exists to prevent silent overwrite
-    const docRef = doc(firestore, collectionName, docId);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
+    // Check if slug already exists in shortener collection
+    const db = getFirestore();
+    const docRef = db.collection("shortener").doc(docId);
+    const docSnap = await docRef.get();
+    if (docSnap.exists) {
       return res.status(409).json({ error: `Slug '${trimmedSlug}' already exists` });
     }
 
     // Write link to Firestore
-    await setDoc(docRef, {
+    await docRef.set({
       url: trimmedUrl,
       count: 0,
       createdAt: new Date().toISOString(),

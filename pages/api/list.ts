@@ -27,25 +27,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(403).json({ error: "Access Denied: You are not authorized to view links" });
     }
 
-    // 3. Fetch all collections & documents from Firestore
+    // 3. Fetch all documents from the single 'shortener' collection
     const db = getFirestore();
-    const collections = await db.listCollections();
+    const snapshot = await db.collection("shortener").get();
     const links: any[] = [];
 
-    for (const col of collections) {
-      const snapshot = await col.get();
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        const slug = col.id === "slugs" ? doc.id : `${col.id}/${doc.id}`;
-        links.push({
-          slug,
-          url: data.url || "",
-          count: data.count || 0,
-          createdAt: data.createdAt || null,
-          createdBy: data.createdBy || null,
-        });
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      const slug = doc.id.replace(/:/g, "/");
+      links.push({
+        slug,
+        url: data.url || "",
+        count: data.count || 0,
+        createdAt: data.createdAt || null,
+        createdBy: data.createdBy || null,
       });
-    }
+    });
 
     // Sort links by creation date (newest first) or alphabetically by slug
     links.sort((a, b) => {

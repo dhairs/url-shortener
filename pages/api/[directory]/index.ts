@@ -1,8 +1,7 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import { doc, getDoc, updateDoc } from "firebase/firestore";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { headers } from "next/headers";
-import firestore from "../../../bin/firebase";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import "../../../lib/firebase-admin"; // Ensures Admin SDK is initialized
+
 type Data = {
   url: string;
 };
@@ -12,25 +11,27 @@ export default async function handler(
   res: NextApiResponse<Data>
 ) {
   const { directory } = req.query;
-  const docRef = doc(firestore, "slugs", `${directory}`);
-  var docData = await getDoc(docRef);
+  console.log(`Got request for flat slug: ${directory}`);
 
-  console.log(`Got request for ${directory}`);
+  try {
+    const db = getFirestore();
+    const docRef = db.collection("shortener").doc(`${directory}`);
+    const docSnap = await docRef.get();
 
-  if (docData.exists()) {
-    var newData = docData.data();
+    if (docSnap.exists) {
+      const data = docSnap.data() || {};
+      
+      // Increment count atomically on redirect
+      await docRef.update({
+        count: FieldValue.increment(1)
+      });
 
-    // how many times it was used
-    if (newData.count != undefined && newData.count != null) {
-      newData.count += 1;
+      res.status(200).json({ url: data.url || "/" });
     } else {
-      newData.count = 0;
+      res.status(200).json({ url: "/" });
     }
-
-    await updateDoc(docRef, newData);
-
-    res.status(200).json({ url: docData.data().url });
-  } else {
+  } catch (error) {
+    console.error(`Error handling redirect for /${directory}:`, error);
     res.status(200).json({ url: "/" });
   }
 }
